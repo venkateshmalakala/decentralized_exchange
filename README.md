@@ -1,95 +1,107 @@
-# Decentralized Exchange (DEX) with Automated Market Maker
+# DEX AMM Project
 
-A robust implementation of a Decentralized Exchange (DEX) using the Automated Market Maker (AMM) protocol. This project implements the constant product formula ($x \times y = k$) to facilitate decentralized token swapping, liquidity provision, and fee collection.
+## Overview
+This project implements a Decentralized Exchange (DEX) using the Automated Market Maker (AMM) protocol. It enables trustless token swapping between two ERC-20 tokens (Token A and Token B) using the constant product formula ($x \times y = k$). Users can provide liquidity to earn a 0.3% trading fee or swap tokens directly via the smart contract.
 
-## 📌 Overview
-This DEX allows users to trade ERC20 tokens in a trustless environment without an order book. It features a complete liquidity management system where users can deposit tokens to earn shares of the pool and trading fees.
+## Features
+- Initial and subsequent liquidity provision
+- Liquidity removal with proportional share calculation
+- Token swaps using constant product formula (x * y = k)
+- 0.3% trading fee for liquidity providers
+- LP token minting and burning
 
-**Deployed Address (Localhost):** `0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0`
+## Architecture
+The system consists of the following components:
+- **`DEX.sol`**: The core smart contract handling liquidity pools, swap logic, and fee accumulation. It manages reserves for Token A and Token B and tracks LP shares.
+- **`MockERC20.sol`**: A standard ERC-20 token used to simulate the trading pair for testing purposes.
+- **Docker Environment**: A containerized testing environment ensuring consistent execution across different machines.
 
-## ✨ Features
-* **Token Swapping:** Instant swaps between two ERC20 tokens using AMM logic.
-* **Liquidity Management:**
-    * **Add Liquidity:** Users can deposit token pairs to mint LP (Liquidity Provider) shares.
-    * **Remove Liquidity:** Users can burn shares to withdraw their underlying assets + accumulated fees.
-* **Fee System:** A 0.3% trading fee is applied to every swap and distributed to liquidity providers.
-* **Slippage Protection:** Prevents trades that result in zero output.
-* **Security:** Protected against reentrancy attacks and integer overflows.
+## Mathematical Implementation
 
-## 🏗 Architecture
-The system consists of the following core components:
+### Constant Product Formula
+The DEX uses the invariant $x \times y = k$ to determine exchange rates.
+- $x$: Reserve of Token A
+- $y$: Reserve of Token B
+- $k$: Constant product
+When a swap occurs, the product of the reserves must remain greater than or equal to the previous product (before fees).
 
-* **`DEX.sol`**: The main smart contract containing the AMM logic (pricing, swapping, liquidity minting/burning).
-* **`MockERC20.sol`**: A standard ERC20 implementation used to simulate "Token X" and "Token Y" for testing purposes.
-* **Dockerized Environment**: A self-contained testing environment using Node.js 20 to ensure consistent execution.
+### Fee Calculation
+A 0.3% fee is applied to every trade. This is implemented by adjusting the input amount before calculating the output:
+$$amountInWithFee = amountIn \times 997$$
+This effectively adds the fee to the reserves, increasing $k$ and rewarding liquidity providers.
 
-## 🧮 Mathematical Implementation
-The DEX uses the **Constant Product Formula** to determine prices and maintain reserves.
+### LP Token Minting
+- **Initial Liquidity:** $Shares = \sqrt{amountA \times amountB}$
+- **Subsequent Liquidity:** shares are minted proportionally to the existing reserves using:
+  $$Shares = min(\frac{amountA \times TotalLiquidity}{ReserveA}, \frac{amountB \times TotalLiquidity}{ReserveB})$$
 
-### 1. The Invariant
-$$x \times y = k$$
-*Where $x$ and $y$ are the reserves of the two tokens, and $k$ is a constant.*
-
-### 2. Swap Calculation (with Fees)
-When a user inputs `dx` amount of tokens, the output `dy` is calculated as:
-$$dy = \frac{y \cdot dx \cdot 997}{x \cdot 1000 + dx \cdot 997}$$
-*Note: The factor `997` represents the 0.3% fee deduction (1000 - 3).*
-
-### 3. Liquidity Shares
-* **Initial Mint:** $Shares = \sqrt{amountX \cdot amountY}$
-* **Subsequent Mints:** $Shares = \min(\frac{amountX \cdot TotalShares}{ReserveX}, \frac{amountY \cdot TotalShares}{ReserveY})$
-
-## 🚀 Setup & Installation
+## Setup Instructions
 
 ### Prerequisites
-* Node.js (v18 or v20)
-* Docker & Docker Compose
+- Docker and Docker Compose installed
+- Git
 
-### Option 1: Running with Docker (Recommended)
-The project is fully containerized. You can run the entire suite with one command:
+### Installation
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd dex-amm
+```
+2. Start Docker environment:
 
 ```bash
-# 1. Start the container
-docker-compose up -d --build
 
-# 2. Compile contracts
-docker-compose exec app npx hardhat compile
+docker-compose up -d
+```
+3. Compile contracts:
 
-# 3. Run all 25+ tests
-docker-compose exec app npx hardhat test
 
-# 4. Check Code Coverage (>80%)
-docker-compose exec app npx hardhat coverage
+```bash
 
-# 5. Stop the container
+docker-compose exec app npm run compile
+```
+4. Run tests:
+
+```bash
+
+docker-compose exec app npm test
+```
+5. Check coverage:
+
+```bash
+
+docker-compose exec app npm run coverage
+```
+6. Stop Docker:
+
+```bash
+
 docker-compose down
 ```
-
-Option 2: Running Locally
-
+### Running Tests Locally (without Docker)
 ```bash
-# Install dependencies
+
 npm install
-
-# Compile
-npx hardhat compile
-
-# Run Tests
-npx hardhat test
+npm run compile
+npm test
 ```
+### Contract Addresses
+-**`DEX Contract`**: 0x5FbDB2315678afecb367f032d93F642f64180aa3 (Localhost)
 
-🛡 Security Considerations
-Reentrancy Protection: All state-changing functions (swap, addLiquidity, removeLiquidity) use OpenZeppelin's nonReentrant modifier.
+-**`Token A`**: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 (Localhost)
 
-Safe Transfers: The contract uses SafeERC20 to handle non-standard token implementations that might fail silently.
+-**`Token B`**: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0 (Localhost)
 
-Ratio Manipulation: Liquidity addition checks ensure subsequent deposits match the current pool ratio to prevent value dilution.
+### Known Limitations
+-**`Single Pair`**: This contract specifically handles two tokens defined at deployment.
 
-Zero Address Checks: Deployment ensures no invalid token addresses are used.
+-**`Slippage`**: While getAmountOut allows front-ends to calculate expected return, the contract currently lacks a minAmountOut parameter for transaction-level slippage protection.
 
-⚠️ Known Limitations
-Single Pair: This contract deployment supports only one specific pair of tokens (Token X / Token Y).
+-**`Rounding`**: Integer division in Solidity may result in minor precision loss for very small amounts.
 
-No Deadline: The swap function does not currently include a timestamp deadline, meaning a transaction could theoretically be pending for a long time (though unlikely on modern L2s).
+### Security Considerations
+-**`Reentrancy Protection`**: All state-changing functions use OpenZeppelin's nonReentrant modifier.
 
-No Slippage Parameter: While the contract ensures output > 0, strict minimum amount output parameters (slippage tolerance) are left for the frontend to calculate.
+-**`Safe Transfers`**: The contract uses SafeERC20 to handle non-standard token implementations.
+
+-**`Ratio Checks`**: Liquidity addition enforces the current reserve ratio to prevent manipulation of the pool price.

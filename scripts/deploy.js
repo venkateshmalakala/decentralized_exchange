@@ -1,22 +1,19 @@
 const hre = require("hardhat");
 
 async function main() {
-  // 1. Deploy two Mock Tokens first
+  const [deployer] = await hre.ethers.getSigners();
+
   const MockERC20 = await hre.ethers.getContractFactory("MockERC20");
-  
-  const tokenX = await MockERC20.deploy("Token X", "TKX");
-  await tokenX.waitForDeployment();
-  console.log(`Token X deployed to: ${await tokenX.getAddress()}`);
+  const tokenA = await MockERC20.deploy("Token A", "TKA");
+  await tokenA.waitForDeployment();
+  const tokenB = await MockERC20.deploy("Token B", "TKB");
+  await tokenB.waitForDeployment();
 
-  const tokenY = await MockERC20.deploy("Token Y", "TKY");
-  await tokenY.waitForDeployment();
-  console.log(`Token Y deployed to: ${await tokenY.getAddress()}`);
-
-  // 2. Deploy the DEX
   const DEX = await hre.ethers.getContractFactory("DEX");
-  const dex = await DEX.deploy(await tokenX.getAddress(), await tokenY.getAddress());
+  const dex = await DEX.deploy(tokenA.target, tokenB.target);
   await dex.waitForDeployment();
-  console.log(`DEX deployed to: ${await dex.getAddress()}`);
+
+  console.log(`DEX deployed to: ${dex.target}`);
 }
 
 main().catch((error) => {
