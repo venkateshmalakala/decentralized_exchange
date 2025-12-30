@@ -86,22 +86,22 @@ npm run compile
 npm test
 ```
 ### Contract Addresses
--**`DEX Contract`**: 0x5FbDB2315678afecb367f032d93F642f64180aa3 (Localhost)
+- **`DEX Contract`**: 0x5FbDB2315678afecb367f032d93F642f64180aa3 (Localhost)
 
--**`Token A`**: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 (Localhost)
+- **`Token A`**: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 (Localhost)
 
--**`Token B`**: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0 (Localhost)
+- **`Token B`**: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0 (Localhost)
 
 ### Known Limitations
--**`Single Pair`**: This contract specifically handles two tokens defined at deployment.
+- **`Single Pair`**: This contract specifically handles two tokens defined at deployment.
 
--**`Slippage`**: While getAmountOut allows front-ends to calculate expected return, the contract currently lacks a minAmountOut parameter for transaction-level slippage protection.
+- **`Slippage`**: While getAmountOut allows front-ends to calculate expected return, the contract currently lacks a minAmountOut parameter for transaction-level slippage protection.
 
--**`Rounding`**: Integer division in Solidity may result in minor precision loss for very small amounts.
+- **`Rounding`**: Integer division in Solidity may result in minor precision loss for very small amounts.
 
 ### Security Considerations
--**`Reentrancy Protection`**: All state-changing functions use OpenZeppelin's nonReentrant modifier.
+- **`Reentrancy Protection`**: All state-changing functions use OpenZeppelin's nonReentrant modifier.
 
--**`Safe Transfers`**: The contract uses SafeERC20 to handle non-standard token implementations.
+- **`Safe Transfers`**: The contract uses SafeERC20 to handle non-standard token implementations.
 
--**`Ratio Checks`**: Liquidity addition enforces the current reserve ratio to prevent manipulation of the pool price.
+- **`Ratio Checks`**: Liquidity addition enforces the current reserve ratio to prevent manipulation of the pool price.
